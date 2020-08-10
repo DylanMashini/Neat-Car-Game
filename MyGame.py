@@ -16,7 +16,8 @@ class Car():
         for i in range(10):
             rewpoint = pkl.load(open("data/rewPoints/" + str(i) + ".pkl", "rb"))
             self.RewPoints.append(rewpoint)
-
+        self.SpeedCounter = 0
+        self.RenderDead = False
         self.rewpointsachived = [False, False, False ,False, False, False, False, False, False, False]
         self.fitness = 0
         self.isAllive = True
@@ -27,6 +28,7 @@ class Car():
         self.vel = 6
         self.standingVel = 6
         len = 40
+        self.turningvel = 5
         self.img = pygame.image.load("data/car.png")
         self.top_line = ([self.center[0] + math.cos(math.radians(360 - (self.angle + 30))) * len, self.center[1] + math.sin(math.radians(360 - (self.angle + 30))) * len], [self.center[0] + math.cos(math.radians(360 - (self.angle + 330))) * len, self.center[1] + math.sin(math.radians(360 - (self.angle + 330))) * len])
         self.img = pygame.transform.scale(self.img, (100,100))
@@ -38,18 +40,19 @@ class Car():
         
     def left(self):
         if self.isAllive:
-            self.angle += 3
+            self.angle += self.turningvel
             self.rotImg = self.rot_center(self.img, self.angle)
 
     def right(self):
         if self.isAllive:
-            self.angle -= 3
+            self.angle -= self.turningvel
             self.rotImg = self.rot_center(self.img, self.angle)
         
     def go(self):
         if self.isAllive:
             self.x += math.cos(math.radians(360 - self.angle)) * self.vel
             self.y += math.sin(math.radians(360 - self.angle)) * self.vel
+            self.SpeedCounter = 0
         
     def rot_center(self, image, angle):
         orig_rect = image.get_rect()
@@ -103,7 +106,7 @@ class Car():
             if self.rewpointsachived[0] is False:
                 rew = tup in self.RewPoints[0]
                 if rew:
-                    self.rewpointsachived[0] = True
+                    self.rewpointsachived = [True, False, False ,False, False, False, False, False, False, False]
                     self.addRew()
             elif self.rewpointsachived[1] is False:
                 rew = tup in self.RewPoints[1]
@@ -149,11 +152,14 @@ class Car():
                 rew = tup in self.RewPoints[9]
                 if rew:
                     self.rewpointsachived[9] = True
+                    self.rewpointsachived[0] = False
                     self.addRew()
 
             if opp:
                 self.isAllive = False
-                self.img = pygame.image.load("data/dead_car.png")
+                if self.RenderDead:
+                    self.img = pygame.image.load("data/dead_car.png")
+                
                 self.img = pygame.transform.scale(self.img, (100,100))
                 self.rotImg = self.rot_center(self.img, self.angle)
     def standing(self):
@@ -161,9 +167,11 @@ class Car():
             self.updateRadars()
             self.x += math.cos(math.radians(360 - self.angle)) * self.standingVel
             self.y += math.sin(math.radians(360 - self.angle)) * self.standingVel
+            self.SpeedCounter += 1
+            if self.SpeedCounter == 40:
+                self.isAllive = False
         
     def addRew(self):
-        print("+10 rew")
         self.fitness += 10
     def updateRadars(self):
 
@@ -234,13 +242,14 @@ def draw():
 #    for rewpoint in RewPoints:
 #        pygame.draw.circle(win, (0,255,0), rewpoint, 70, 2)
     for car in cars:
-        car.standing()
-        win.blit(car.rotImg, (car.x, car.y))
-        for radar in car.radars:
-            pygame.draw.line(win, (0,0,255), radar.startPoint, radar.endPoint, 3)
-            if radar.collPoint is not None:
+        if car.RenderDead or car.isAllive:
+            car.standing()
+            win.blit(car.rotImg, (car.x, car.y))
+            for radar in car.radars:
+                pygame.draw.line(win, (0,0,255), radar.startPoint, radar.endPoint, 3)
+                if radar.collPoint is not None:
 
-                pygame.draw.circle(win, (255,0,0), radar.collPoint, 3)
+                    pygame.draw.circle(win, (255,0,0), radar.collPoint, 3)
         
         #Draws Box
 #        top_line, bottom_line = car.getCollisionPoints()
@@ -314,14 +323,15 @@ def run_car(genomes, config):
         #    for rewpoint in RewPoints:
         #        pygame.draw.circle(win, (0,255,0), rewpoint, 70, 2)
         for car in cars:
-            car.standing()
-            car.amIDead()
-            win.blit(car.rotImg, (car.x, car.y))
-            for radar in car.radars:
-                pygame.draw.line(win, (0,0,255), radar.startPoint, radar.endPoint, 3)
-                if radar.collPoint is not None:
+            if car.RenderDead or car.isAllive:
+                car.standing()
+                car.amIDead()
+                win.blit(car.rotImg, (car.x, car.y))
+                for radar in car.radars:
+                    pygame.draw.line(win, (0,0,255), radar.startPoint, radar.endPoint, 3)
+                    if radar.collPoint is not None:
 
-                    pygame.draw.circle(win, (255,0,0), radar.collPoint, 3)
+                        pygame.draw.circle(win, (255,0,0), radar.collPoint, 3)
                     
         pygame.display.update()
 
