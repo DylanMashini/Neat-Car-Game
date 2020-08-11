@@ -1,3 +1,5 @@
+#Open From PreTrained
+
 #MY GAME
 import pygame
 import pickle as pkl
@@ -10,12 +12,13 @@ generation = 0
     
 
 class Car():
-    def __init__(self):
+    def __init__(self, color="RED"):
         self.RewPoints = []
 
         for i in range(10):
             rewpoint = pkl.load(open("data/rewPoints/" + str(i) + ".pkl", "rb"))
             self.RewPoints.append(rewpoint)
+        self.color = color
         self.SpeedCounter = 0
         self.RenderDead = False
         self.rewpointsachived = [False, False, False ,False, False, False, False, False, False, False]
@@ -29,7 +32,10 @@ class Car():
         self.standingVel = 6
         len = 40
         self.turningvel = 5
-        self.img = pygame.image.load("data/car.png")
+        if self.color is "RED":
+        	self.img = pygame.image.load("data/car.png")
+        else:
+        	self.img = pygame.image.load("data/car2.png")
         self.top_line = ([self.center[0] + math.cos(math.radians(360 - (self.angle + 30))) * len, self.center[1] + math.sin(math.radians(360 - (self.angle + 30))) * len], [self.center[0] + math.cos(math.radians(360 - (self.angle + 330))) * len, self.center[1] + math.sin(math.radians(360 - (self.angle + 330))) * len])
         self.img = pygame.transform.scale(self.img, (100,100))
         self.rotImg = self.img
@@ -281,11 +287,16 @@ def run_car(genomes, config):
     x,y = 50, 50
     nets = []
     cars = []
+    carcount = 0
     for id, genome in genomes:
         net = neat.nn.FeedForwardNetwork.create(genome, config)
         nets.append(net)
         genome.fitness = 0
-        cars.append(Car())
+        if carcount == 0:
+        	cars.append(Car())
+        else:
+        	cars.append(Car(color="BLUE"))
+        carcount += 1
     run = True
     global generation
     generation += 1
@@ -341,19 +352,14 @@ def run_car(genomes, config):
 
 if __name__ == "__main__":
     config = neat.config.Config(neat.DefaultGenome, neat.DefaultReproduction,
-    neat.DefaultSpeciesSet, neat.DefaultStagnation, "data/config-feedforward.txt")
-    p = neat.Population(config)
-
+    neat.DefaultSpeciesSet, neat.DefaultStagnation, "data/config-feedforward pretrained.txt")
     # Add reporter for fancy statistical result
-    p.add_reporter(neat.StdOutReporter(True))
-    stats = neat.StatisticsReporter()
-    p.add_reporter(stats)
-
-
-
+    genome15 = pkl.load(open("data/Pretrained models/15_generations.pkl", "rb"))
+    genome25 = pkl.load(open("data/Pretrained models/25_generations.pkl", "rb"))
+    genomes = [(1, genome15), (2, genome25)]
     # Runs NEAT for 5 generations, than saves model
-    winner = p.run(run_car, 25)
-    pkl.dump(winner, open("25_generations.pkl", "wb"))
+    run_car(genomes, config)
+    
     
 pygame.quit()
 
