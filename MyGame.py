@@ -349,8 +349,9 @@ if __name__ == "__main__":
     stats = neat.StatisticsReporter()
     p.add_reporter(stats)
 
-    # Run NEAT
-    p.run(run_car, 1000)
+    # Runs NEAT for 5 generations, than saves model
+    winner = p.run(run_car, 25)
+    pkl.dump(winner, open("25_generations.pkl", "wb"))
     
 pygame.quit()
 
