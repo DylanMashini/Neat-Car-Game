@@ -339,7 +339,7 @@ def run_car(genomes, config):
     
 
 
-if __name__ == "__main__":
+def RUN():
     config = neat.config.Config(neat.DefaultGenome, neat.DefaultReproduction,
     neat.DefaultSpeciesSet, neat.DefaultStagnation, "data/config-feedforward.txt")
     p = neat.Population(config)

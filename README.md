@@ -6,3 +6,5 @@ Pickle
 neat-python
 
 pygame
+
+To Run Just Run Main.py :)
